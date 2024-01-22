@@ -1,7 +1,7 @@
 package paste
 
 import (
-	"strconv"
+	"pastecl/internal/database"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,8 +10,8 @@ import (
 type Paste struct {
 	UUID       string `json:"uuid"`
 	Title      string `json:"title"`
-	CreatedAt  string `json:"created_at"`
-	ExpiresAt  string `json:"expires_at"`
+	CreatedAt  int64  `json:"created_at"`
+	ExpiresAt  int64  `json:"expires_at"`
 	Visibility bool   `json:"visibility"`
 	ControlKey string `json:"control_key"`
 	OwnerId    string `json:"ownser_id"`
@@ -29,11 +29,25 @@ func CreateAnonPaste(title string, expires_at string, visibility bool) (*Paste, 
 	newPaste := Paste{
 		UUID:       pasteID.String(),
 		Title:      title,
-		CreatedAt:  strconv.FormatInt(time.Now().Unix(), 10),
-		ExpiresAt:  strconv.FormatInt(time.Now().AddDate(0, 6, 0).Unix(), 10),
+		CreatedAt:  time.Now().Unix(),
+		ExpiresAt:  time.Now().AddDate(0, 6, 0).Unix(),
 		Visibility: visibility,
 		ControlKey: controlKey.String(),
 	}
 
 	return &newPaste, nil
+}
+
+func (pst *Paste) SaveToDB() error {
+	sqlStatement := `INSERT INTO paste 
+    (id, title, createdat, expiresat, visibility, controlkey, ownerid)
+    VALUES (?, ?, ?, ?, ?, ?, ?);`
+	_, err := database.Access.Exec(sqlStatement,
+		pst.UUID, pst.Title, pst.CreatedAt, pst.ExpiresAt, pst.Visibility, pst.ControlKey, pst.OwnerId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

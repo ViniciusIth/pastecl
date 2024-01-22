@@ -1,21 +1,15 @@
 package main
 
 import (
-	"net/http"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"log"
+	"pastecl/internal/paste"
 )
 
 func main() {
-    r := chi.NewRouter()
+    anonPaste, err := paste.CreateAnonPaste("Test", "", true)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-    r.Use(middleware.RealIP)
-    r.Use(middleware.Logger)
-
-    r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-        w.Write([]byte("Welcome"))
-    })
-
-    http.ListenAndServe(":3000", r)
+    log.Println(anonPaste)
 }

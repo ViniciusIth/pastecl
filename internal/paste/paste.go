@@ -17,11 +17,15 @@ type Paste struct {
 	OwnerId    string `json:"ownser_id"`
 }
 
-func CreateAnonPaste(title string, expires_at string, visibility bool) (*Paste, error) {
+func CreateAnonPaste(title string, expires_at int64, visibility bool) (*Paste, error) {
 	pasteID, err := uuid.NewV7()
 	if err != nil {
 		return nil, err
 	}
+
+    if expires_at == 0 {
+        expires_at = time.Now().AddDate(0, 6, 0).Unix()
+    }
 
 	// Just for tests, use a better thing in the future
 	controlKey, err := uuid.NewV7()
@@ -30,7 +34,7 @@ func CreateAnonPaste(title string, expires_at string, visibility bool) (*Paste, 
 		UUID:       pasteID.String(),
 		Title:      title,
 		CreatedAt:  time.Now().Unix(),
-		ExpiresAt:  time.Now().AddDate(0, 6, 0).Unix(),
+		ExpiresAt:  expires_at,
 		Visibility: visibility,
 		ControlKey: controlKey.String(),
 	}

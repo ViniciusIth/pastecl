@@ -23,8 +23,6 @@ func ConnectDB() error {
 }
 
 func InitializeDB() error {
-	// User table initialization
-	// _, err := Access.Exec("CREATE TABLE user (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, createdAt TEXT NOT NULL)")
 	_, err := Access.Exec(`CREATE TABLE IF NOT EXISTS paste (
         id TEXT NOT NULL PRIMARY KEY,
         title TEXT NOT NULL,

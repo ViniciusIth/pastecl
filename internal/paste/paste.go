@@ -12,14 +12,14 @@ import (
 )
 
 type Paste struct {
-	UUID        string `json:"uuid"`
-	Title       string `json:"title"`
-	CreatedAt   int64  `json:"created_at"`
-	ExpiresAt   int64  `json:"expires_at"`
-	Visibility  bool   `json:"visibility"`
-	ControlKey  string `json:"control_key"`
-	OwnerId     string `json:"ownser_id"`
-	FileContent *multipart.FileHeader
+	UUID       string `json:"uuid"`
+	Title      string `json:"title"`
+	CreatedAt  int64  `json:"created_at"`
+	ExpiresAt  int64  `json:"expires_at"`
+	Visibility bool   `json:"visibility"`
+	ControlKey string `json:"control_key"`
+	OwnerId    string `json:"ownser_id"`
+	FileURL    string `json:"file_url"`
 }
 
 func CreateAnonPaste(title string, expires_at int64, visibility bool, file *multipart.FileHeader) (*Paste, error) {
@@ -36,13 +36,12 @@ func CreateAnonPaste(title string, expires_at int64, visibility bool, file *mult
 	controlKey, err := uuid.NewV7()
 
 	newPaste := Paste{
-		UUID:        pasteID.String(),
-		Title:       title,
-		CreatedAt:   time.Now().Unix(),
-		ExpiresAt:   expires_at,
-		Visibility:  visibility,
-		ControlKey:  controlKey.String(),
-		FileContent: file,
+		UUID:       pasteID.String(),
+		Title:      title,
+		CreatedAt:  time.Now().Unix(),
+		ExpiresAt:  expires_at,
+		Visibility: visibility,
+		ControlKey: controlKey.String(),
 	}
 
 	return &newPaste, nil
@@ -66,6 +65,7 @@ func getPasteDataById(id string) (*Paste, error) {
 		return nil, err
 	}
 
+    savedPaste.FileURL = fmt.Sprintf("http://localhost:3000/paste/%s/file", savedPaste.UUID)
 	return &savedPaste, nil
 }
 
@@ -83,15 +83,15 @@ func (pst *Paste) SaveToDB() error {
 	return nil
 }
 
-func (pst *Paste) SaveToFile() error {
-	file, err := pst.FileContent.Open()
+func SavePasteToFile(paste *Paste, fileHeader *multipart.FileHeader) error {
+	file, err := fileHeader.Open()
 	if err != nil {
 		return err
 	}
 
 	defer file.Close()
 
-	saveFile, err := os.OpenFile(fmt.Sprintf("./data/%s.txt", pst.UUID), os.O_WRONLY|os.O_CREATE, 0666)
+	saveFile, err := os.OpenFile(fmt.Sprintf("./data/%s.txt", paste.UUID), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}

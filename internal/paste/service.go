@@ -13,61 +13,64 @@ import (
 )
 
 var newPasteHandler = func(w http.ResponseWriter, r *http.Request) {
-    err := r.ParseMultipartForm(2 << 18) // 512 kb, I think
-    if err != nil {
-        log.Fatal(err)
-    }
+	err := r.ParseMultipartForm(2 << 18) // 512 kb, I think
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    _, header, err := r.FormFile("content")
-    if err != nil {
-        log.Fatal(err)
-    }
+	_, header, err := r.FormFile("content")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    expires, _ := strconv.ParseInt(r.FormValue("expire_at"), 10, 64)
-    visibility, _ := strconv.ParseBool(r.FormValue("visibility"))
+	expires, _ := strconv.ParseInt(r.FormValue("expire_at"), 10, 64)
+	visibility, _ := strconv.ParseBool(r.FormValue("visibility"))
 
 	newPaste, err := CreateAnonPaste(r.FormValue("title"), expires, visibility, header)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-    err = newPaste.SaveToFile()
-    if err != nil {
-        log.Fatal(err)
-    }
+	err = SavePasteToFile(newPaste, header)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	newPaste.SaveToDB()
+	err = newPaste.SaveToDB()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    jsonResult, err := json.Marshal(newPaste)
-    if err != nil {
-        log.Fatal(err)
-    }
+	jsonResult, err := json.Marshal(newPaste)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    w.Write(jsonResult)
-    w.WriteHeader(http.StatusCreated)
+	w.Write(jsonResult)
+	w.WriteHeader(http.StatusCreated)
 }
 
-var getPasteHandler = func (w http.ResponseWriter, r *http.Request) {
-    pasteId := chi.URLParam(r, "id")
-    
-    savedPaste, err := getPasteDataById(pasteId)
-    if err != nil {
-        w.WriteHeader(http.StatusInternalServerError)
-        log.Fatal(err)
-    }
+var getPasteHandler = func(w http.ResponseWriter, r *http.Request) {
+	pasteId := chi.URLParam(r, "id")
 
-    jsonResult, err := json.Marshal(savedPaste)
-    w.Write(jsonResult)
+	savedPaste, err := getPasteDataById(pasteId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Fatal(err)
+	}
+
+	jsonResult, err := json.Marshal(savedPaste)
+	w.Write(jsonResult)
 }
 
-var getPasteFileHandler = func (w http.ResponseWriter, r *http.Request) {
-    pasteID := chi.URLParam(r, "id")
+var getPasteFileHandler = func(w http.ResponseWriter, r *http.Request) {
+	pasteID := chi.URLParam(r, "id")
 
-    err := uuid.Validate(pasteID)
-    if err != nil {
-        w.WriteHeader(http.StatusNotFound)
-        return
-    }
+	err := uuid.Validate(pasteID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
 	// Assuming pasteID is the filename (you may have a different logic to map pasteID to a filename)
 	filePath := filepath.Join("data", pasteID+".txt")

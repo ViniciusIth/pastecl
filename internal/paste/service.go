@@ -72,7 +72,6 @@ var getPasteFileHandler = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Assuming pasteID is the filename (you may have a different logic to map pasteID to a filename)
 	filePath := filepath.Join("data", pasteID+".txt")
 
 	// Check if the file exists

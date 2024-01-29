@@ -4,11 +4,13 @@ import (
 	"log"
 	"net/http"
 	"pastecl/internal/database"
+	"pastecl/internal/jwt"
 	"pastecl/internal/paste"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
+
 
 func main() {
 	err := database.ConnectDB()
@@ -20,6 +22,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+    jwt.Init()
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

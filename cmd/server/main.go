@@ -6,11 +6,11 @@ import (
 	"pastecl/internal/database"
 	"pastecl/internal/jwt"
 	"pastecl/internal/paste"
+	"pastecl/internal/user"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 )
-
 
 func main() {
 	err := database.ConnectDB()
@@ -23,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-    jwt.Init()
+	jwt.Init()
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -33,6 +33,7 @@ func main() {
 	})
 
 	r.Mount("/paste", paste.AddPasteRoutes())
+	r.Mount("/user", user.AddUserRoutes())
 
 	chi.Walk(r, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
 		log.Printf("[%s]: '%s' has %d middlewares\n", method, route, len(middlewares))

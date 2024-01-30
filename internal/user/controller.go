@@ -6,6 +6,7 @@ func AddUserRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Post("/new", UserRegistrationHandler)
+    r.Post("/login", UserLoginHandler)
     // r.Get("/{id}", getPasteHandler)
     // r.Get("/{id}/file", getPasteFileHandler)
 

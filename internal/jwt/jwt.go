@@ -7,11 +7,12 @@ import (
 )
 
 
-var tokenAuth *jwtauth.JWTAuth
+var AuthGenerator *jwtauth.JWTAuth
 
 func Init() {
-    tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
+    AuthGenerator = jwtauth.New("HS256", []byte("secret"), nil)
 
-	_, tokenString, _ := tokenAuth.Encode(map[string]interface{}{"user_id": 123})
+	_, tokenString, _ := AuthGenerator.Encode(map[string]interface{}{"user_id": 123})
 	log.Printf("DEBUG: a sample jwt is %s\n", tokenString)
 }
+

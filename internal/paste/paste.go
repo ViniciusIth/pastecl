@@ -47,6 +47,28 @@ func CreateAnonPaste(title string, expires_at int64, visibility bool, file *mult
 	return &newPaste, nil
 }
 
+func CreateUserPaste(title string, expires_at int64, visibility bool, userId string, file *multipart.FileHeader) (*Paste, error) {
+	pasteID, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	if expires_at == 0 {
+		expires_at = time.Now().AddDate(0, 6, 0).Unix()
+	}
+
+	newPaste := Paste{
+		UUID:       pasteID.String(),
+		Title:      title,
+		CreatedAt:  time.Now().Unix(),
+		ExpiresAt:  expires_at,
+		Visibility: visibility,
+		OwnerId:    userId,
+	}
+
+	return &newPaste, nil
+}
+
 func getPasteDataById(id string) (*Paste, error) {
 	var savedPaste Paste
 
@@ -65,7 +87,7 @@ func getPasteDataById(id string) (*Paste, error) {
 		return nil, err
 	}
 
-    savedPaste.FileURL = fmt.Sprintf("http://localhost:3000/paste/%s/file", savedPaste.UUID)
+	savedPaste.FileURL = fmt.Sprintf("http://localhost:3000/paste/%s/file", savedPaste.UUID)
 	return &savedPaste, nil
 }
 

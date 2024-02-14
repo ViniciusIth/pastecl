@@ -34,6 +34,23 @@ func CreateNewUser(username string, email string, password string) (*User, error
 	return &newUser, nil
 }
 
+func getUserByID(id string) (*User, error) {
+	var user User
+
+	sqlStatement := `SELECT * FROM users WHERE uuid = ?;`
+	err := database.Access.QueryRow(sqlStatement, id).Scan(
+		&user.UUID, &user.Username, &user.Email, &user.Password, &user.CreatedAt,
+	)
+
+	if err != nil {
+		// Handle the error (user not found, database error, etc.)
+		// You might want to check if err == sql.ErrNoRows to handle the case when no user is found.
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func CheckUserCredentials(email string, password string) (*User, error) {
 	var user User
 
@@ -52,7 +69,7 @@ func CheckUserCredentials(email string, password string) (*User, error) {
 		return nil, errors.New("Wrong password")
 	}
 
-    user.Password = ""
+	user.Password = ""
 
 	return &user, nil
 }
@@ -63,7 +80,7 @@ func (user *User) SaveToDB() error {
     VALUES (?, ?, ?, ?, ?);`
 
 	_, err := database.Access.Exec(sqlStatement,
-        user.UUID, user.Username, user.Email, user.Password, user.CreatedAt)
+		user.UUID, user.Username, user.Email, user.Password, user.CreatedAt)
 
 	if err != nil {
 		return err

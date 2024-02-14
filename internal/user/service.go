@@ -68,6 +68,36 @@ func UserLoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func getUserHandler(w http.ResponseWriter, r *http.Request) {
+	userID := chi.URLParam(r, "id")
+
+	// _, claims, err := jwtauth.FromContext(r.Context())
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	// subject := claims["sub"].(string)
+
+	getUser, err := getUserByID(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	getUser.Password = ""
+
+	jsonRes, err := json.Marshal(getUser)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Write(jsonRes)
+	w.WriteHeader(http.StatusOK)
+}
+
 func getUserPastesHandler(w http.ResponseWriter, r *http.Request) {
 	pasteId := chi.URLParam(r, "id")
 	var subject string

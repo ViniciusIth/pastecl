@@ -91,6 +91,41 @@ func getPasteDataById(id string) (*Paste, error) {
 	return &savedPaste, nil
 }
 
+func GetPastesByUser(userId string, requestID string) (*[]Paste, error) {
+	var userPastes []Paste
+	var sqlStatement string
+
+	if requestID != "" && requestID == userId {
+		sqlStatement = `SELECT id, title, createdat, expiresat, visibility, ownerid
+		FROM paste
+		WHERE ownerid = ?;`
+	} else {
+		sqlStatement = `SELECT id, title, createdat, expiresat, visibility, ownerid
+		FROM paste
+		WHERE ownerid = ? AND visibility = 1;`
+	}
+
+	rows, err := database.Access.Query(sqlStatement, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var paste Paste
+		err = rows.Scan(&paste.UUID, &paste.Title, &paste.CreatedAt, &paste.ExpiresAt, &paste.Visibility, &paste.OwnerId)
+
+		paste.FileURL = fmt.Sprintf("http://localhost:3000/paste/%s/file", paste.UUID)
+		userPastes = append(userPastes, paste)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return &userPastes, nil
+}
+
 func (pst *Paste) SaveToDB() error {
 	sqlStatement := `INSERT INTO paste 
     (id, title, createdat, expiresat, visibility, controlkey, ownerid)

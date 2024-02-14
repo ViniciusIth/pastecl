@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"log"
 	"pastecl/internal/database"
 	"pastecl/internal/jwt"
 	"time"

@@ -1,14 +1,20 @@
 package user
 
-import "github.com/go-chi/chi/v5"
+import (
+	"pastecl/internal/jwt"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/jwtauth"
+)
 
 func AddUserRoutes() *chi.Mux {
 	r := chi.NewRouter()
 
+	r.Use(jwtauth.Verifier(jwt.AuthGenerator))
+
 	r.Post("/new", UserRegistrationHandler)
-    r.Post("/login", UserLoginHandler)
-    // r.Get("/{id}", getPasteHandler)
-    // r.Get("/{id}/file", getPasteFileHandler)
+	r.Post("/login", UserLoginHandler)
+	r.Get("/{id}/pastes", getUserPastesHandler)
 
 	return r
 }

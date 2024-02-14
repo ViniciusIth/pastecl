@@ -32,8 +32,6 @@ func CreateNewUser(username string, email string, password string) (*User, error
 		CreatedAt: time.Now().Unix(),
 	}
 
-	log.Println(newUser.Username)
-
 	return &newUser, nil
 }
 

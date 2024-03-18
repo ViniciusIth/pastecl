@@ -37,7 +37,7 @@ func InitializeDB() error {
 		return err
 	}
 
-    _, err = Access.Exec(`CREATE TABLE IF NOT EXISTS users (
+	_, err = Access.Exec(`CREATE TABLE IF NOT EXISTS users (
         uuid TEXT NOT NULL PRIMARY KEY,
         username TEXT NOT NULL,
         email TEXT NOT NULL,
@@ -45,9 +45,9 @@ func InitializeDB() error {
         created_at INTEGER NOT NULL
         );`)
 
-    if err != nil {
-        return err
-    }
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

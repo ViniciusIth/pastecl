@@ -30,6 +30,8 @@ func UserRegistrationHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(err.Error()))
 		log.Fatal(err)
 	}
+
+	w.WriteHeader(http.StatusCreated)
 }
 
 func UserLoginHandler(w http.ResponseWriter, r *http.Request) {

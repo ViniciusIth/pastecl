@@ -18,7 +18,7 @@ type Paste struct {
 	ExpiresAt  int64  `json:"expires_at"`
 	Visibility bool   `json:"visibility"`
 	ControlKey string `json:"control_key"`
-	OwnerId    string `json:"ownser_id"`
+	OwnerId    string `json:"owner_id"`
 	FileURL    string `json:"file_url"`
 }
 
@@ -72,7 +72,7 @@ func CreateUserPaste(title string, expires_at int64, visibility bool, userId str
 func getPasteDataById(id string) (*Paste, error) {
 	var savedPaste Paste
 
-	sqlStatement := `SELECT id, title, createdat, expiresat, visibility, ownerid FROM paste WHERE id = ?`
+	sqlStatement := `SELECT id, title, createdat, expiresat, visibility, ownerid FROM paste WHERE id = ? AND expiresat > unixepoch()`
 	row := database.Access.QueryRow(sqlStatement, id)
 
 	err := row.Scan(
@@ -98,11 +98,11 @@ func GetPastesByUser(userId string, requestID string) (*[]Paste, error) {
 	if requestID != "" && requestID == userId {
 		sqlStatement = `SELECT id, title, createdat, expiresat, visibility, ownerid
 		FROM paste
-		WHERE ownerid = ?;`
+		WHERE ownerid = ? AND expiresat > unixepoch();`
 	} else {
 		sqlStatement = `SELECT id, title, createdat, expiresat, visibility, ownerid
 		FROM paste
-		WHERE ownerid = ? AND visibility = 1;`
+		WHERE ownerid = ? AND visibility = 1 AND expiresat > unixepoch();`
 	}
 
 	rows, err := database.Access.Query(sqlStatement, userId)

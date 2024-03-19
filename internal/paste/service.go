@@ -2,6 +2,7 @@ package paste
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/jwtauth"
 	"github.com/google/uuid"
 )
 
@@ -26,9 +28,20 @@ var newPasteHandler = func(w http.ResponseWriter, r *http.Request) {
 	expires, _ := strconv.ParseInt(r.FormValue("expire_at"), 10, 64)
 	visibility, _ := strconv.ParseBool(r.FormValue("visibility"))
 
-	newPaste, err := CreateAnonPaste(r.FormValue("title"), expires, visibility, header)
-	if err != nil {
-		log.Fatal(err)
+	var newPaste *Paste
+
+	_, claims, err := jwtauth.FromContext(r.Context())
+	if err == nil {
+		subject := claims["sub"].(string)
+		fmt.Printf("subject: %v\n", subject)
+		if subject != "" {
+			newPaste, err = CreateUserPaste(r.FormValue("title"), expires, visibility, subject, header)
+		}
+	} else {
+		newPaste, err = CreateAnonPaste(r.FormValue("title"), expires, visibility, header)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	err = SavePasteToFile(newPaste, header)
@@ -72,7 +85,6 @@ var getPasteFileHandler = func(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Assuming pasteID is the filename (you may have a different logic to map pasteID to a filename)
 	filePath := filepath.Join("data", pasteID+".txt")
 
 	// Check if the file exists

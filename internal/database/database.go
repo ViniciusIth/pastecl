@@ -32,6 +32,19 @@ func InitializeDB() error {
         controlkey STRING,
         ownerid STRING
         )`)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = Access.Exec(`CREATE TABLE IF NOT EXISTS users (
+        uuid TEXT NOT NULL PRIMARY KEY,
+        username TEXT NOT NULL,
+        email TEXT NOT NULL,
+        password TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+        );`)
+
 	if err != nil {
 		return err
 	}

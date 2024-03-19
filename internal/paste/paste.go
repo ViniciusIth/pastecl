@@ -18,7 +18,7 @@ type Paste struct {
 	ExpiresAt  int64  `json:"expires_at"`
 	Visibility bool   `json:"visibility"`
 	ControlKey string `json:"control_key"`
-	OwnerId    string `json:"ownser_id"`
+	OwnerId    string `json:"owner_id"`
 	FileURL    string `json:"file_url"`
 }
 
@@ -47,10 +47,32 @@ func CreateAnonPaste(title string, expires_at int64, visibility bool, file *mult
 	return &newPaste, nil
 }
 
+func CreateUserPaste(title string, expires_at int64, visibility bool, userId string, file *multipart.FileHeader) (*Paste, error) {
+	pasteID, err := uuid.NewV7()
+	if err != nil {
+		return nil, err
+	}
+
+	if expires_at == 0 {
+		expires_at = time.Now().AddDate(0, 6, 0).Unix()
+	}
+
+	newPaste := Paste{
+		UUID:       pasteID.String(),
+		Title:      title,
+		CreatedAt:  time.Now().Unix(),
+		ExpiresAt:  expires_at,
+		Visibility: visibility,
+		OwnerId:    userId,
+	}
+
+	return &newPaste, nil
+}
+
 func getPasteDataById(id string) (*Paste, error) {
 	var savedPaste Paste
 
-	sqlStatement := `SELECT id, title, createdat, expiresat, visibility, ownerid FROM paste WHERE id = ?`
+	sqlStatement := `SELECT id, title, createdat, expiresat, visibility, ownerid FROM paste WHERE id = ? AND expiresat > unixepoch()`
 	row := database.Access.QueryRow(sqlStatement, id)
 
 	err := row.Scan(
@@ -65,8 +87,43 @@ func getPasteDataById(id string) (*Paste, error) {
 		return nil, err
 	}
 
-    savedPaste.FileURL = fmt.Sprintf("http://localhost:3000/paste/%s/file", savedPaste.UUID)
+	savedPaste.FileURL = fmt.Sprintf("http://localhost:3000/paste/%s/file", savedPaste.UUID)
 	return &savedPaste, nil
+}
+
+func GetPastesByUser(userId string, requestID string) (*[]Paste, error) {
+	var userPastes []Paste
+	var sqlStatement string
+
+	if requestID != "" && requestID == userId {
+		sqlStatement = `SELECT id, title, createdat, expiresat, visibility, ownerid
+		FROM paste
+		WHERE ownerid = ? AND expiresat > unixepoch();`
+	} else {
+		sqlStatement = `SELECT id, title, createdat, expiresat, visibility, ownerid
+		FROM paste
+		WHERE ownerid = ? AND visibility = 1 AND expiresat > unixepoch();`
+	}
+
+	rows, err := database.Access.Query(sqlStatement, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var paste Paste
+		err = rows.Scan(&paste.UUID, &paste.Title, &paste.CreatedAt, &paste.ExpiresAt, &paste.Visibility, &paste.OwnerId)
+
+		paste.FileURL = fmt.Sprintf("http://localhost:3000/paste/%s/file", paste.UUID)
+		userPastes = append(userPastes, paste)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return &userPastes, nil
 }
 
 func (pst *Paste) SaveToDB() error {

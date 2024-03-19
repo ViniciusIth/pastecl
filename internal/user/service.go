@@ -106,10 +106,9 @@ func getUserPastesHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, claims, err := jwtauth.FromContext(r.Context())
 	if err != nil {
-		log.Fatal(err)
+	    log.Println("Anonymous request to user pastes")
+        claims["sub"] = ""
 	}
-
-	log.Println(claims)
 
 	subject = claims["sub"].(string)
 
